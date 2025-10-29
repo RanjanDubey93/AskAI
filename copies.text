@@ -1,0 +1,64 @@
+import './App.css'
+import { useState } from 'react'
+import { URL } from './constants'
+import Answer from './components/Answers'
+
+function App() {
+  const[question,setQuestion] = useState('');
+  const [result,setResult] = useState(["Hello there! Ask me anything..."]);
+
+  const payload = {
+    "contents":[{
+      "parts":[{
+        "text": question
+      }]
+    }]
+  }
+
+  const askQuestion = async() =>{
+    if(!question.trim()) return;
+    let response = await fetch(URL+ "AIzaSyB7fjvQj8FIGnm09eI7SzxkCnaL0j5c4Ew",{
+      method:"POST",
+      body:JSON.stringify(payload)
+    })
+    response = await response.json();
+    let dataString = response.candidates[0].content.parts[0].text;
+    dataString =dataString.split("* ");
+    dataString = dataString.map((item)=>item.trim())
+    // setResult(response.candidates[0].content.parts[0].text);
+    setResult(prev => [...prev, response.candidates[0].content.parts[0].text]);
+    setQuestion('');
+  }
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      askQuestion();
+    }
+  };
+  return (
+    <div className ='grid grid-cols-5 h-screen text-center overflow-hidden'>
+      <div className = 'col-span-1 bg-purple-900 text-purple-100 shadow-lg flex flex-col items-center justify-start p-4'>
+        <h1 className = 'text-xl font-semibold mt-4'>Hello</h1>
+      </div>
+      <div className = 'col-span-4 p-10 bg-gradient-to-br from purple-950 via-purple-900 to-black flex flex-col justify-between'>
+        <div className = 'flex-grow overflow-y-auto text-white mb-6'>
+              <ul>
+                {
+                result && result.map((item, index)=>(
+                <li><Answer ans = {item} key ={index}/></li>
+              ))
+            }
+            </ul>
+              
+        </div>
+        <div className='bg-purple-800/40 w-1/2 p-1 pr-5 text-white m-auto rounded-3xl border border-purple-400 flex shadow-md'>
+          <input type="text" value={question} onChange={(event)=>setQuestion(event.target.value)} onKeyDown={handleKeyDown} className='w-full h-full p-3 bg-transparent text-white placeholder-purple-300 outline-none' placeholder = 'Ask me anything'/>
+          <button onClick={askQuestion} className="px-4 text-white font-semibold hover:text-purple-300 transition-all duration-200">Ask</button>
+        </div>
+        
+
+      </div>
+    </div>
+  )
+}
+
+export default App
